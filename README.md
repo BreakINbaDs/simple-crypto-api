@@ -1,1 +1,1 @@
-# simple-crypto-api
+# simple-crypto-app
