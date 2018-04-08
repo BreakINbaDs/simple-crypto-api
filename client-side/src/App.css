@@ -1,28 +1,78 @@
+#root{
+  height: 100%;
+}
+
 .App {
-  text-align: center;
+  height: 100%;
+  position: relative;
+  background-image: url('./images/background.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center center;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
-}
-
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
+.coins-form {
+  width: 400px;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  position: absolute;
+  align-items: center;
+  left: 30px;
+  top: 30px;
   color: white;
 }
 
-.App-title {
-  font-size: 1.5em;
+.coin-input{
+  color: white;
+  font-size: 20px;
+  letter-spacing: 1px;
 }
 
-.App-intro {
-  font-size: large;
+.coin{
+  color: white;
+  font-size: 35px;
 }
 
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.price {
+  color: white;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.submit{
+  width: 130px;
+  height: 40px;
+  background-color: rgba(255,255,255,0.3);
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.delete-btn {
+  width: 130px;
+  height: 40px;
+  background-color: rgba(255,255,255,0.3);
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.user-coins {
+  position: absolute;
+  width: 20%;
+  left: 40%;
+  top: 20%;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
+.coin-container {
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  align-items: center;
 }

@@ -19,7 +19,8 @@ module.exports = {
   addCoin: addCoin,
   removeCoin: removeCoin,
   updatePrices: updatePrices,
-  getCoinsPrices: getCoinsPrices
+  getCoinsPrices: getCoinsPrices,
+  deleteCoins: deleteCoins
 };
 
 
@@ -29,23 +30,47 @@ function addCoin(req, res, next){
   var userID = req.param('user_id');
   var code = req.param('code');
   var price = myCache.get(code);
-
-
-  db.none('insert into coins(user_id, code, price)' +
-    'values($1, $2, $3)',
-  [userID, code, price.EUR])
-  .then(function () {
-    res.status(200)
-      .json({
-        status: 'success',
-        message: 'Inserted one coin',
-        price: price.EUR
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  // If price not in cache we can call 3rd party for it
+  if (price == undefined){
+    request('https://min-api.cryptocompare.com/data/price?fsym='+code+'&tsyms=EUR', { json: true }, (err, res, body) => {
+      if (err)
+        res.send(err);
+      myCache.set( code, body, 300 );
+      price = body.EUR;
+      db.none('insert into coins(user_id, code, price)' +
+        'values($1, $2, $3)',
+      [userID, code, price])
+      .then(function () {
+        res.status(200)
+          .json({
+            status: 'success',
+            message: 'Inserted one coin',
+            price: price
+          });
+      })
+      .catch(function (err) {
+        return next(err);
       });
-  })
-  .catch(function (err) {
-    return next(err);
-  });
-
+    });
+  } else {
+    // if price was in cache
+    db.none('insert into coins(user_id, code, price)' +
+      'values($1, $2, $3)',
+    [userID, code, price.EUR])
+    .then(function () {
+      res.status(200)
+        .json({
+          status: 'success',
+          message: 'Inserted one coin',
+          price: price.EUR
+        });
+    })
+    .catch(function (err) {
+      return next(err);
+    });
+  }
 }
 
 
@@ -53,6 +78,8 @@ function addCoin(req, res, next){
 function getCoin(req, res, next){
 
 	var userID = parseInt(req.params.id);
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
 
   	db.any('select * from coins where user_id = $1 order by id', userID)
   		.then(function (data) {
@@ -68,11 +95,32 @@ function getCoin(req, res, next){
     	});
 }
 
+///////////////________DELETE_____COINS______////////////////
+function deleteCoins(req, res, next){
+
+	var userID = parseInt(req.params.id);
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+
+  	db.none('delete from coins where user_id = $1', userID)
+  		.then(function () {
+      		res.status(200)
+        		.json({
+		          status: 'success',
+		          message: 'Coins deleted!'
+        		});
+    	})
+    	.catch(function (err) {
+      		return next(err);
+    	});
+}
 
 ///////////////_________GET_____PRICES______/////////////////
 function getCoinsPrices(req, res, next){
 
 	var userID = parseInt(req.params.id);
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
 
   	db.any('select prices from coins where user_id = $1 order by id', userID)
   		.then(function (data) {
@@ -93,23 +141,25 @@ function removeCoin(req, res, next){
 
   var userID = req.param('user_id');
   var code = req.param('code');
-
-
-  	db.none('delete from coins where user_id = $1 and code = $2', [userID, code])
-  		.then(function (data) {
-      		res.status(200)
-        		.json({
-		          status: 'success',
-		          message: 'Coin deleted'
-        		});
-    	})
-    	.catch(function (err) {
-      		return next(err);
-    	});
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+	db.none('delete from coins where user_id = $1 and code = $2', [userID, code])
+		.then(function () {
+    		res.status(200)
+      		.json({
+	          status: 'success',
+	          message: 'Coin deleted'
+      		});
+  	})
+  	.catch(function (err) {
+    		return next(err);
+  	});
 }
 
 ///////////////______UPDATE____COIN________//////////////////
 function updateCoin(code){
+  // Website you wish to allow to connect
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
   request('https://min-api.cryptocompare.com/data/price?fsym='+code+'&tsyms=EUR', { json: true }, (err, res, body) => {
     if (err)
       res.send(err);
@@ -123,6 +173,7 @@ function updateCoin(code){
 
 ///////////////_________CACHE_____PRICES_________////////////
 function collectPrices(){
+
   request('https://min-api.cryptocompare.com/data/pricemulti?fsyms=BTC,ETH,XRP,BCH,ADA,XLM,NEO,LTC,EOS,XEM&tsyms=EUR',
   { json: true }, (err, res, body) => {
       if (err)
@@ -146,6 +197,6 @@ function updatePrices(){
       updateCoin(data[elem].code.toString());
     }
   }).catch(function (err) {
-      return next(err);
+      return err;
   });
 }
