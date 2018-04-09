@@ -37,22 +37,24 @@ function addCoin(req, res, next){
     request('https://min-api.cryptocompare.com/data/price?fsym='+code+'&tsyms=EUR', { json: true }, (err, res, body) => {
       if (err)
         res.send(err);
-      myCache.set( code, body, 300 );
       price = body.EUR;
-      db.none('insert into coins(user_id, code, price)' +
-        'values($1, $2, $3)',
-      [userID, code, price])
-      .then(function () {
-        res.status(200)
-          .json({
-            status: 'success',
-            message: 'Inserted one coin',
-            price: price
-          });
-      })
-      .catch(function (err) {
-        return next(err);
-      });
+      if (price !== undefined){
+        myCache.set( code, body, 300 );
+        db.none('insert into coins(user_id, code, price)' +
+          'values($1, $2, $3)',
+        [userID, code, price])
+        .then(function () {
+          res.status(200)
+            .json({
+              status: 'success',
+              message: 'Inserted one coin',
+              price: price
+            });
+        })
+        .catch(function (err) {
+          return next(err);
+        });
+      }
     });
   } else {
     // if price was in cache
