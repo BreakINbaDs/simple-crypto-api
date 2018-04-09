@@ -6,7 +6,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      user_id: Math.round(new Date().getTime()/1000),
+      user_id: null,
       coin_to_add: '',
       user_coins: []
     };
@@ -18,10 +18,24 @@ class App extends Component {
   componentDidMount(){
     // MAke app update prices every 5 min from DB
     setInterval(this.updatePrices, 5*60*1000);
+
+    // Initialize user
+    if (localStorage.getItem('userId') !== null) {
+      // User alredy used this App
+      this.setState({user_id:localStorage.getItem('userId')},() => {
+        this.updatePrices();
+    });
+    } else {
+      // New user
+      var userId = Math.round(new Date().getTime()/1000);
+      this.setState({user_id:userId});
+      localStorage.setItem('userId', userId);
+    }
   }
 
   // Update prices of added coins from DB
   updatePrices(){
+    console.log('Updating prices');
     var id = this.state.user_id;
     var coins = [];
     var targetUrl = 'http://localhost:3001/getCoin/'+id;
