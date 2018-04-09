@@ -8,6 +8,8 @@ var options = {
   promiseLib: promise
 };
 
+
+// Conncet to DB
 var pgp = require('pg-promise')(options);
 var connectionString = 'postgres://localhost:5432/cryptodb';
 var db = pgp(connectionString);
